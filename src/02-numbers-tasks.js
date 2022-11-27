@@ -252,6 +252,8 @@ function toNumber(value, def) {
 }
 
 module.exports = {
+  pow,
+  pow2,
   getRectangleArea,
   getCircleCircumference,
   getAverage,
