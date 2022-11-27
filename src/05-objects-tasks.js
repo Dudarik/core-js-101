@@ -20,8 +20,10 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => this.width * this.height;
 }
 
 
@@ -35,8 +37,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,8 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  return Object.setPrototypeOf(JSON.parse(json), proto);
 }
 
 
@@ -109,37 +111,118 @@ function fromJSON(/* proto, json */) {
  *
  *  For more examples see unit tests.
  */
+const PS_NO_SELECTOR = 'noPrevSelector';
+const PS_ELM = 'element';
+const PS_ID = 'id';
+const PS_CLASS = 'class';
+const PS_ATTR = 'attr';
+const PS_P_CLASS = 'pseudoClass';
+const PS_P_ELM = 'pseudoElement';
+
+const PS_ARR = [PS_CLASS, PS_ATTR, PS_P_CLASS, PS_P_ELM];
+
+const ERR_ONE_ELM_ID_P_ELM = 'Element, id and pseudo-element should not occur more then one time inside the selector';
+const ERR_WRONG_ORDER = 'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element';
+
+class MakeCssSelector {
+  constructor() {
+    this.store = '';
+    this.prevSelector = PS_NO_SELECTOR;
+  }
+
+  element(value) {
+    // console.log(value);
+    if (this.prevSelector === PS_ELM) { throw new Error(ERR_ONE_ELM_ID_P_ELM); }
+    if (this.prevSelector !== PS_NO_SELECTOR) throw new Error(ERR_WRONG_ORDER);
+
+    this.prevSelector = PS_ELM;
+    this.store += value;
+    return this;
+  }
+
+  id(value) {
+    // console.log(this.store);
+    if (this.prevSelector === PS_ID) { throw new Error(ERR_ONE_ELM_ID_P_ELM); }
+    if (PS_ARR.includes(this.prevSelector)) throw new Error(ERR_WRONG_ORDER);
+    this.prevSelector = PS_ID;
+    this.store += `#${value}`;
+    return this;
+  }
+
+  class(value) {
+    if (PS_ARR.slice(1).includes(this.prevSelector)) throw new Error(ERR_WRONG_ORDER);
+    this.prevSelector = PS_CLASS;
+    this.store += `.${value}`;
+    return this;
+  }
+
+  attr(value) {
+    if (PS_ARR.slice(2).includes(this.prevSelector)) throw new Error(ERR_WRONG_ORDER);
+    this.prevSelector = PS_ATTR;
+    this.store += `[${value}]`;
+    return this;
+  }
+
+  pseudoClass(value) {
+    if (PS_ARR.slice(3).includes(this.prevSelector)) throw new Error(ERR_WRONG_ORDER);
+    this.prevSelector = PS_P_CLASS;
+    this.store += `:${value}`;
+    return this;
+  }
+
+  pseudoElement(value) {
+    if (this.prevSelector === PS_P_ELM) { throw new Error(ERR_ONE_ELM_ID_P_ELM); }
+    this.prevSelector = PS_P_ELM;
+    this.store += `::${value}`;
+    return this;
+  }
+
+  combine(selector1, combinator, selector2) {
+    // console.log(selector1.stringify(), selector2.stringify())
+    // debugger
+    this.store = `${selector1.toString()} ${combinator} ${selector2.toString()}`;
+    return this;
+  }
+
+  toString() {
+    return this.store;
+  }
+
+  stringify() {
+    return this.store.trim();
+  }
+}
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+
+  element(value) {
+    return new MakeCssSelector().element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new MakeCssSelector().id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new MakeCssSelector().class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new MakeCssSelector().attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new MakeCssSelector().pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new MakeCssSelector().pseudoElement(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return new MakeCssSelector().combine(selector1, combinator, selector2);
   },
 };
-
 
 module.exports = {
   Rectangle,
