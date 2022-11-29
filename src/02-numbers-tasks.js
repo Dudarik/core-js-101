@@ -14,7 +14,12 @@
  * @param {number} p
  * @returns {number}
  */
-const pow = (x, p) => (p === 1 ? x : x * pow(x, p - 1));
+const pow = (x, p) => {
+  if (p === 0) return 1;
+  if (p < 0) return pow(1 / x, -p);
+  if (p === 0.5) return Math.sqrt(x);
+  return p === 1 ? x : x * pow(x, p - 1);
+};
 
 /**
  * Returns the base raised to the exponent 2
